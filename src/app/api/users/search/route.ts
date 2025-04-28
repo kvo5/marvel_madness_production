@@ -16,13 +16,11 @@ export async function GET(request: NextRequest) {
           {
             username: {
               contains: query,
-              // mode: "insensitive", // Removed for compatibility
             },
           },
           {
             displayName: {
               contains: query,
-              // mode: "insensitive", // Removed for compatibility
             },
           },
         ],

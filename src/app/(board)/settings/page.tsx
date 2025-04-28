@@ -19,8 +19,6 @@ const SettingsPage = async () => {
       displayName: true,
       bio: true,
       location: true,
-      // job: true, // Remove
-      // website: true, // Remove
       role: true, // Add role
       rank: true, // Add rank
       img: true,
@@ -44,8 +42,6 @@ const SettingsPage = async () => {
     displayName: dbUser.displayName,
     bio: dbUser.bio,
     location: dbUser.location,
-    // job: dbUser.job, // Remove
-    // website: dbUser.website, // Remove
     role: dbUser.role, // Add role
     rank: dbUser.rank, // Add rank
     img: dbUser.img,

@@ -31,8 +31,6 @@ interface Team {
     leaderId: string; // Need leaderId to identify leader in members array
     leader: TeamMember; // Assuming leader includes necessary fields like img
     members: TeamMember[]; // Assuming members array includes user details
-    // isWhitelisted: boolean; // Removed, logic now based on invitations
-    // whitelist: string[]; // Removed
     _count?: { members: number };
 }
 

@@ -18,13 +18,6 @@ const LeftBar = async () => {
       link: "/",
       icon: "home.svg",
     },
-    // Remove Bookmarks entry
-    // {
-    //   id: 5, // Original ID for Bookmarks
-    //   name: "Bookmarks",
-    //   link: "/",
-    //   icon: "bookmark.svg",
-    // },
      {
       id: 7, // Original ID for Teams
       name: "Teams",

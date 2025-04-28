@@ -11,23 +11,16 @@ const PostInteractions = ({
   postId,
   count,
   isLiked,
-  // isRePosted, // Remove from destructuring
-  // isSaved, // Remove from destructuring
 }: {
   username: string;
   postId: number;
   count: { likes: number; rePosts: number; comments: number }; // Keep rePosts in count for now if needed elsewhere, or remove if truly unused
   isLiked: boolean;
-  // isRePosted: boolean; // Removed from type
-  // isSaved: boolean; // Removed from type
 }) => {
   // Simplify state
   const [state, setState] = useState({
     likes: count.likes,
     isLiked: isLiked,
-    // rePosts: count.rePosts, // Remove
-    // isRePosted, // Remove
-    // isSaved, // Remove
   });
 
   const { user } = useUser();
@@ -56,9 +49,6 @@ const PostInteractions = ({
       };
     });
   };
-
-  // Remove rePostAction
-  // Remove saveAction
 
   // Simplify useOptimistic
   const [optimisticCount, addOptimisticCount] = useOptimistic(

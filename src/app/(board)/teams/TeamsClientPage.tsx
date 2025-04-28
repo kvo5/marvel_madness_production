@@ -27,8 +27,6 @@ interface Team {
     leaderId: string; // Add leaderId
     leader: TeamMember; // Assuming leader is included
     members: TeamMember[];
-    // isWhitelisted: boolean; // Removed
-    // whitelist: string[]; // Removed
     _count?: { members: number }; // If count is included
     // Add other relevant fields
 }
