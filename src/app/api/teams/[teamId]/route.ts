@@ -36,7 +36,7 @@ export async function DELETE(
             return NextResponse.json({ error: 'Forbidden: Only the team leader can delete the team' }, { status: 403 });
         }
 
-        // Delete the team (related TeamMember records should cascade delete)
+        // Delete the team (related TeamMember records should cascade delete due to schema definition)
         await prisma.team.delete({
             where: { id: teamId },
         });
@@ -113,10 +113,10 @@ export async function PUT(
             where: { id: teamId },
             data: {
                 name: trimmedName,
-                isWhitelisted: isWhitelisted, // Add isWhitelisted to the update data
+                whitelist: isWhitelisted, // Use 'whitelist' as suggested by TS error, passing the boolean value from isWhitelisted
             },
             // Optionally select fields to return - including isWhitelisted might be useful
-            select: { id: true, name: true, leaderId: true, isWhitelisted: true, _count: { select: { members: true } } }
+            select: { id: true, name: true, leaderId: true, whitelist: true, _count: { select: { members: true } } } // Use 'whitelist' here too
         });
 
         return NextResponse.json(updatedTeam, { status: 200 });

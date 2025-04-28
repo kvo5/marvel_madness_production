@@ -61,9 +61,16 @@ export async function GET(request: Request) {
 
         // Determine the team to return: the one they lead or the one they are a member of
         const team = userWithTeam.ledTeam ?? userWithTeam.membership?.team ?? null;
+        const isLeader = !!userWithTeam.ledTeam; // Determine if the user is the leader
 
-        // Return the team details or null if not part of any team
-        return NextResponse.json(team);
+        // Construct the response object expected by the frontend
+        const responsePayload: { team: typeof team | null, isLeader: boolean } = {
+            team: team,
+            isLeader: isLeader,
+        };
+
+        // Return the team details and leadership status
+        return NextResponse.json(responsePayload);
 
     } catch (error) {
         console.error("Error fetching user's team:", error);

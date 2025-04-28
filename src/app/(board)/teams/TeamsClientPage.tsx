@@ -164,27 +164,23 @@ const TeamsClientPage = () => {
                         >
                             Loading...
                         </button>
-                    ) : userIsLeader && userTeamId ? (
+                    ) : userIsLeader ? ( // Check only if user is leader
                         // Show Delete button if user is the leader
                         <button
                             onClick={handleDeleteTeam}
-                            disabled={deleteMutation.isPending}
+                            disabled={deleteMutation.isPending || !userTeamId} // Also disable if teamId is somehow missing
                             className="px-4 py-2 rounded font-semibold bg-red-500 hover:bg-red-600 text-white disabled:bg-gray-400"
                         >
                             {deleteMutation.isPending ? 'Deleting...' : 'Delete My Team'}
                         </button>
-                    ) : !userIsOnTeam ? (
-                         // Show Create button if user is not on any team
+                    ) : (
+                         // Show Create button if user is NOT the leader (covers no team AND member cases)
                         <button
                             onClick={() => setIsCreateModalOpen(true)}
                             className="px-4 py-2 rounded font-semibold bg-blue-500 hover:bg-blue-600 text-white"
                         >
                             Create Team
                         </button>
-                    ) : (
-                        // Optional: Show something if user is on a team but not leader (e.g., disabled button or nothing)
-                        // Currently shows nothing in this case.
-                        null
                     )}
                  </div>
             </div>
