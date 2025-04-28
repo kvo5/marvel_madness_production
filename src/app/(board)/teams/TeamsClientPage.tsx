@@ -203,7 +203,7 @@ const TeamsClientPage = () => {
                     // Search Results
                     <div className="space-y-4">
                         {isLoadingSearch && <p>Searching...</p>}
-                        {!isLoadingSearch && searchResults && searchResults.length === 0 && <p>No teams found matching "{debouncedSearchTerm}".</p>}
+                        {!isLoadingSearch && searchResults && searchResults.length === 0 && <p>No teams found matching &quot;{debouncedSearchTerm}&quot;.</p>}
                         {!isLoadingSearch && searchResults && searchResults.map(team => (
                             <TeamWidget
                                 key={team.id}
