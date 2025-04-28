@@ -1,5 +1,6 @@
 import Feed from "@/components/Feed";
 import FollowButton from "@/components/FollowButton";
+import ReputationWidget from "@/components/ReputationWidget"; // Import ReputationWidget
 // Keep custom Image component for cover for now
 // Remove custom Image import if no longer needed
 // import Image from "@/components/Image";
@@ -35,10 +36,27 @@ const UserPage = async ({
       cover: true,
       createdAt: true,
       // updatedAt: true, // Not needed on profile page
+      reputation: true, // Fetch reputation score
       _count: { select: { followers: true, followings: true } },
       followings: userId ? { where: { followerId: userId } } : undefined,
     }
   });
+
+  // Fetch the current logged-in user's vote for this target user
+  let currentUserVote = null;
+  if (userId && user) {
+    currentUserVote = await prisma.reputationVote.findUnique({
+      where: {
+        voterId_targetUserId: {
+          voterId: userId,
+          targetUserId: user.id,
+        },
+      },
+      select: { // Select only the necessary field
+        voteType: true, // Correct field name
+      }
+    });
+  }
 
   console.log(userId);
   if (!user) return notFound();
@@ -81,10 +99,6 @@ const UserPage = async ({
           </div>
         </div>
         <div className="flex w-full items-center justify-end gap-2 p-2">
-          <div className="w-9 h-9 flex items-center justify-center rounded-full border-[1px] border-gray-500 cursor-pointer">
-            {/* Use standard img tag */}
-            <img src="/icons/explore.svg" alt="more" width={20} height={20} />
-          </div>
           {userId && (
             <FollowButton
             userId={user.id}
@@ -107,7 +121,7 @@ const UserPage = async ({
               <div className="flex items-center gap-1">
                 {/* Use standard img tag for local public assets */}
                 <img
-                  src={`/ranks/${user.role.charAt(0).toUpperCase() + user.role.slice(1).toLowerCase()}_Icon.webp`} // Format role name to match file case
+                  src={`/icons/roles/${user.role.toLowerCase()}.svg`} // Use conventional path and svg
                   alt={`${user.role} Role`}
                   width={16}
                   height={16}
@@ -121,7 +135,7 @@ const UserPage = async ({
                  {/* Use standard img tag for local public assets */}
                 <img
                   // Extract rank name, format to match filename case (e.g., "Grandmaster" from "GRANDMASTER III")
-                  src={`/ranks/${user.rank.split(" ")[0].charAt(0).toUpperCase() + user.rank.split(" ")[0].slice(1).toLowerCase()}_Rank.webp`}
+                  src={`/icons/ranks/${user.rank.split(" ")[0].toLowerCase()}.svg`} // Use conventional path and svg
                   alt={`${user.rank} Rank`}
                   width={16}
                   height={16}
@@ -162,6 +176,14 @@ const UserPage = async ({
               <span className="font-bold">{user._count.followings}</span>
               <span className="text-textGray text-[15px]">followers</span>
             </div>
+          </div>
+          {/* REPUTATION WIDGET */}
+          <div className="p-4">
+            <ReputationWidget
+              targetUserId={user.id}
+              initialReputation={user.reputation}
+              initialVote={currentUserVote} // Pass the fetched vote object or null
+            />
           </div>
         </div>
       </div>

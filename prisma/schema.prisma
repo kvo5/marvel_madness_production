@@ -19,6 +19,7 @@ generator client {
    rank        String?  // Add Rank (String to accommodate tiers)
    img         String?
    cover       String?
+   reputation  Int      @default(0) // Added reputation score
 
    // Team Relations
    // Relation indicating which team this user leads (if any)
@@ -43,6 +44,10 @@ generator client {
    followings Follow[] @relation("UserFollowings")
 
    invitations TeamInvitation[] // Relation to invitations received by the user
+
+   // Reputation Relations
+   votesGiven    ReputationVote[] @relation("VotesGiven")
+   votesReceived ReputationVote[] @relation("VotesReceived")
  }
 
  model Post {
@@ -115,7 +120,13 @@ generator client {
   STRATEGIST
  }
 
-// New Team model
+ // Enum for Reputation Votes
+ enum VoteType {
+  UPVOTE
+  DOWNVOTE
+ }
+
+ // New Team model
 model Team {
   id        String   @id @default(cuid())
   name      String   @unique // Requirement: Teams have a unique name
@@ -168,4 +179,19 @@ model TeamInvitation {
   @@unique([teamId, invitedUserId]) // Prevent duplicate invitations for the same user to the same team
   @@index([teamId]) // Index for querying invitations for a specific team
   @@index([invitedUserId]) // Index for querying invitations for a specific user
+}
+
+// Model for tracking user reputation votes
+model ReputationVote {
+  id           String   @id @default(cuid())
+  voterId      String
+  voter        User     @relation("VotesGiven", fields: [voterId], references: [id], onDelete: Cascade)
+  targetUserId String
+  targetUser   User     @relation("VotesReceived", fields: [targetUserId], references: [id], onDelete: Cascade)
+  voteType     VoteType
+  createdAt    DateTime @default(now())
+
+  @@unique([voterId, targetUserId]) // Ensure one vote per user per target
+  @@index([voterId])
+  @@index([targetUserId])
 }
