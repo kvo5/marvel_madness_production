@@ -121,6 +121,7 @@ export async function PUT(
 
         return NextResponse.json(updatedTeam, { status: 200 });
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) { // Catch specific errors
         console.error(`Error updating team ${context.params.teamId}:`, error);
 
