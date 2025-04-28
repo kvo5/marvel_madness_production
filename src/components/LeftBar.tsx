@@ -28,7 +28,7 @@ const LeftBar = async () => {
      {
       id: 7, // Original ID for Teams
       name: "Teams",
-      link: "/",
+      link: "/teams",
       icon: "community.svg",
     },
     {

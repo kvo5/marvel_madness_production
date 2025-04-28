@@ -73,6 +73,7 @@ export async function POST(req: Request) {
       }
 
 
+      console.log(`Attempting to create user in DB: ID=${id}, Email=${email}, Username=${username}`); // <-- ADDED LOG
       await prisma.user.create({
         data: {
           id: id,
@@ -84,7 +85,8 @@ export async function POST(req: Request) {
       console.log(`Successfully created user ${id} in database.`);
       return new Response("User created", { status: 201 }); // Use 201 for resource creation
     } catch (err) {
-      console.error("Error processing user.created webhook:", err);
+      // <-- MODIFIED LOGGING
+      console.error(`Error during prisma.user.create for user ID ${evt.data.id}:`, err);
       // Check for unique constraint violation
       if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
         // User might already exist (e.g., previous delete failed, unique email constraint)
@@ -114,7 +116,8 @@ export async function POST(req: Request) {
           return new Response("Existing user updated", { status: 200 });
         } catch (updateErr) { // Inner catch block starts here
           // emailToFind is now accessible here
-          console.error(`Error attempting to update existing user ${emailToFind}:`, updateErr);
+          // <-- MODIFIED LOGGING
+          console.error(`Error during prisma.user.update for email ${emailToFind} (attempting recovery from P2002):`, updateErr);
           // If the update fails, return a server error
           return new Response("Error: Failed to update existing user!", { status: 500 });
         } // End inner catch
