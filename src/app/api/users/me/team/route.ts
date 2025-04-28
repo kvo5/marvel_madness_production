@@ -11,44 +11,44 @@ export async function GET(request: Request) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        // Fetch user with their potential team leadership or membership
+        // Fetch user with their potential team leadership, membership, and invitations
         const userWithTeam = await prisma.user.findUnique({
             where: { id: userId },
             select: {
-                // Check if the user leads a team
+                // Select the team the user leads (if any)
                 ledTeam: {
-                    include: {
-                        leader: { // Include leader details
-                            select: { id: true, username: true, img: true, displayName: true },
-                        },
-                        members: { // Include all members of the led team
-                            include: {
-                                user: {
-                                    select: { id: true, username: true, img: true, displayName: true },
-                                },
-                            },
+                    include: { // Include necessary details for the team object
+                        leader: { select: { id: true, username: true, img: true, displayName: true } },
+                        members: {
+                            include: { user: { select: { id: true, username: true, img: true, displayName: true } } },
                             orderBy: { createdAt: 'asc' }
+                        },
+                        _count: { select: { members: true } } // Include member count if needed
+                    },
+                },
+                // Select the user's membership record (if any)
+                membership: {
+                    select: {
+                        // Include the actual team details through the membership relation
+                        team: {
+                            include: {
+                                leader: { select: { id: true, username: true, img: true, displayName: true } },
+                                members: {
+                                    include: { user: { select: { id: true, username: true, img: true, displayName: true } } },
+                                    orderBy: { createdAt: 'asc' }
+                                },
+                                _count: { select: { members: true } } // Include member count if needed
+                            },
                         },
                     },
                 },
-                // Check if the user is a member of a team
-                membership: {
-                    include: {
-                        team: { // Include the team details if they are a member
-                            include: {
-                                leader: { // Include leader details
-                                    select: { id: true, username: true, img: true, displayName: true },
-                                },
-                                members: { // Include all members of the team they belong to
-                                    include: {
-                                        user: {
-                                            select: { id: true, username: true, img: true, displayName: true },
-                                        },
-                                    },
-                                    orderBy: { createdAt: 'asc' }
-                                },
-                            },
-                        },
+                // Select the user's pending invitations
+                invitations: {
+                    where: { status: 'PENDING' }, // Filter for only PENDING invitations
+                    select: {
+                        id: true,       // Select invitation ID
+                        teamId: true,   // Select the ID of the team the invitation is for
+                        // Add other fields from TeamInvitation if needed by the frontend later
                     },
                 },
             },
@@ -60,16 +60,19 @@ export async function GET(request: Request) {
         }
 
         // Determine the team to return: the one they lead or the one they are a member of
+        // Access the team through membership.team if it exists
         const team = userWithTeam.ledTeam ?? userWithTeam.membership?.team ?? null;
-        const isLeader = !!userWithTeam.ledTeam; // Determine if the user is the leader
+        const isLeader = !!userWithTeam.ledTeam; // User is leader if ledTeam is not null
 
         // Construct the response object expected by the frontend
-        const responsePayload: { team: typeof team | null, isLeader: boolean } = {
+        const responsePayload = {
             team: team,
             isLeader: isLeader,
+            // Use the correctly fetched 'invitations' field
+            pendingInvitations: userWithTeam.invitations ?? [],
         };
 
-        // Return the team details and leadership status
+        // Return the team details, leadership status, and pending invitations
         return NextResponse.json(responsePayload);
 
     } catch (error) {
