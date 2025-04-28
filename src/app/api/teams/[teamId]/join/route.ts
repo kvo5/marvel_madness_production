@@ -7,8 +7,9 @@ const MAX_TEAM_MEMBERS = 6;
 // PUT /api/teams/[teamId]/join - Join a team
 export async function PUT(
     request: Request, // Keep request parameter even if unused for now
-    { params }: { params: { teamId: string } }
+    context: { params: { teamId: string } }
 ) {
+    const { teamId } = context.params; // Use context
     try {
         const user = await currentUser(); // Need user details (username) for whitelist check
         const userId = user?.id;
@@ -17,7 +18,7 @@ export async function PUT(
             return NextResponse.json({ error: 'Unauthorized or username missing' }, { status: 401 });
         }
 
-        const { teamId } = params;
+        // No longer needed: const { teamId } = params;
 
         if (!teamId) {
             return NextResponse.json({ error: 'Team ID is required' }, { status: 400 });
@@ -109,7 +110,7 @@ export async function PUT(
         }
 
     } catch (error) {
-        console.error(`Error joining team ${params.teamId}:`, error);
+        console.error(`Error joining team ${context.params.teamId}:`, error); // Use context
         // Handle potential Prisma errors like unique constraint violation if checks fail
         if (error instanceof Error && 'code' in error && error.code === 'P2002') { // Unique constraint failed (e.g., user already member)
              return NextResponse.json({ error: 'User is already part of a team' }, { status: 400 });
