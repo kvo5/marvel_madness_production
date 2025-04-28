@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 
 interface CreateTeamModalProps {
     isOpen: boolean;
@@ -33,7 +33,7 @@ const CreateTeamModal: React.FC<CreateTeamModalProps> = ({ isOpen, onClose }) =>
             onClose(); // Close modal on success
             alert('Team created successfully!');
         },
-        onError: (error: any) => {
+        onError: (error: AxiosError<{ error?: string }>) => {
             console.error("Error creating team:", error);
             const errorMessage = error.response?.data?.error || error.message || 'Failed to create team.';
             setError(errorMessage);

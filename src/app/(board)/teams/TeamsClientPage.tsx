@@ -146,7 +146,7 @@ const TeamsClientPage = () => {
     };
 
     // --- Render Logic ---
-    const displayTeams = debouncedSearchTerm ? (searchResults ?? []) : allTeams;
+    // const displayTeams = debouncedSearchTerm ? (searchResults ?? []) : allTeams; // Removed unused variable
     const isLoading = debouncedSearchTerm ? isLoadingSearch : (isLoadingInfiniteTeams || isFetchingNextPage);
 
     return (

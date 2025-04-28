@@ -4,7 +4,7 @@
 
 import React from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import CustomImage from './Image'; // Assuming this is the correct path for the Image component
 
 // Re-using types defined in TeamsClientPage - consider moving to a shared types file later
@@ -61,7 +61,7 @@ const TeamWidget: React.FC<TeamWidgetProps> = ({ team, currentUserTeamStatus, cu
             // Optionally: Show success message
             alert('Successfully joined team!');
         },
-        onError: (error: any) => { // Use 'any' or a more specific error type
+        onError: (error: AxiosError<{ error?: string }>) => { // Use AxiosError type
             console.error("Error joining team:", error);
             // Optionally: Show error message based on response
             const errorMessage = error.response?.data?.error || error.message || 'Failed to join team.';
