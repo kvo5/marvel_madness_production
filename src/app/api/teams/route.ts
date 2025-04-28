@@ -7,9 +7,10 @@ import { Prisma } from '@prisma/client'; // Import Prisma namespace for Transact
 // Schema for validating the POST request body
 const createTeamSchema = z.object({
   name: z.string().min(3, 'Team name must be at least 3 characters long').max(30, 'Team name must be 30 characters or less'),
+  invitedUsernames: z.array(z.string().min(1)).max(5, 'You can invite up to 5 users').optional().default([]), // Added invitedUsernames
 });
 
-// POST /api/teams - Create a new team
+// POST /api/teams - Create a new team and send invitations
 export async function POST(request: Request) {
   try {
     const authResult = await auth(); // Await the auth() call
@@ -25,7 +26,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Invalid input', details: parsed.error.errors }, { status: 400 });
     }
 
-    const { name } = parsed.data;
+    const { name, invitedUsernames } = parsed.data; // Destructure invitedUsernames
 
     // Check if user is already in a team or leads one
     const existingUserTeam = await prisma.user.findUnique({
@@ -47,8 +48,10 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Team name already taken' }, { status: 400 });
     }
 
-    // Create team and initial member (leader) in a transaction
-    const newTeam = await prisma.$transaction(async (tx: Prisma.TransactionClient) => { // Correct type for tx
+    // Create team, initial member (leader), and invitations in a transaction
+    // Remove explicit type for tx, let TypeScript infer it again
+    const result = await prisma.$transaction(async (tx) => {
+      // 1. Create the Team
       const team = await tx.team.create({
         data: {
           name,
@@ -58,6 +61,7 @@ export async function POST(request: Request) {
         },
       });
 
+      // 2. Create the TeamMember record for the leader
       await tx.teamMember.create({
         data: {
           teamId: team.id,
@@ -65,10 +69,53 @@ export async function POST(request: Request) {
         },
       });
 
-      return team;
+      // 3. Process Invitations
+      // Explicitly type invitationResults arrays
+      const invitationResults: { successful: string[]; failed: string[] } = { successful: [], failed: [] };
+      if (invitedUsernames && invitedUsernames.length > 0) {
+        for (const username of invitedUsernames) {
+          const invitedUser = await tx.user.findUnique({
+            where: { username },
+            select: { id: true },
+          });
+
+          // Skip if user not found or if it's the leader inviting themselves
+          if (!invitedUser || invitedUser.id === userId) {
+            if (!invitedUser) invitationResults.failed.push(username); // Record failed username
+            continue;
+          }
+
+          // Check if an invitation already exists (optional, prevents duplicates if needed)
+          const existingInvitation = await tx.teamInvitation.findUnique({
+            where: {
+              teamId_invitedUserId: { // Correct composite key name
+                teamId: team.id,
+                invitedUserId: invitedUser.id, // Correct field name
+              },
+            },
+          });
+
+          if (!existingInvitation) {
+            await tx.teamInvitation.create({
+              data: {
+                teamId: team.id,
+                invitedUserId: invitedUser.id, // Correct field name
+              },
+            });
+            invitationResults.successful.push(username); // Record successful username
+          } else {
+             // Optionally handle case where invitation already exists (e.g., add to failed/skipped)
+             // invitationResults.failed.push(username); // Example: treat existing as failed/skipped
+          }
+        }
+      }
+
+      return { team, invitationResults }; // Return both team and invitation results
     });
 
-    return NextResponse.json(newTeam, { status: 201 });
+    // Return the created team data (and optionally invitation results)
+    // You might want to adjust the response structure based on frontend needs
+    return NextResponse.json(result.team, { status: 201 }); // Returning only team for now
 
   } catch (error) {
     console.error("Error creating team:", error);

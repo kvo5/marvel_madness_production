@@ -4,14 +4,14 @@
 
 import React, { useState, useEffect } from 'react';
 import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import axios from 'axios'; // Or use fetch
+import axios, { AxiosError } from 'axios'; // Or use fetch
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { useUser } from '@clerk/nextjs'; // Import useUser hook
 // import { useDebounce } from 'use-debounce'; // Or implement manually
 
 // Placeholders for components we will create
 import TeamWidget from '@/components/TeamWidget'; // Import TeamWidget
-import CreateTeamModal from './CreateTeamModal'; // Import CreateTeamModal
+import CreateEditTeamModal from './CreateEditTeamModal'; // Import unified modal
 
 // Define types for API responses (adjust based on actual API structure)
 interface TeamMember {
@@ -27,19 +27,27 @@ interface Team {
     leaderId: string; // Add leaderId
     leader: TeamMember; // Assuming leader is included
     members: TeamMember[];
-    isWhitelisted: boolean; // Added for whitelist status
-    whitelist: string[]; // Assuming whitelist is string array (kept for now)
+    // isWhitelisted: boolean; // Removed
+    // whitelist: string[]; // Removed
     _count?: { members: number }; // If count is included
     // Add other relevant fields
+}
+
+interface TeamInvitation {
+    id: string;
+    teamId: string;
+    // Add other relevant invitation fields if needed
 }
 
 interface UserTeamStatus {
     team: Team | null; // The team the user is on (or null)
     isLeader: boolean; // Whether the user leads this team
+    pendingInvitations: TeamInvitation[]; // Add pending invitations
 }
 
 const fetchUserTeamStatus = async (): Promise<UserTeamStatus | null> => {
     try {
+        // Assuming the endpoint now returns invitations as well
         const { data } = await axios.get<UserTeamStatus>('/api/users/me/team');
         return data;
     } catch (error) {
@@ -74,7 +82,12 @@ const TeamsClientPage = () => {
     const { user } = useUser(); // Get current user from Clerk
     const [searchTerm, setSearchTerm] = useState('');
     const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
-    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    // State for the unified Create/Edit modal
+    const [modalState, setModalState] = useState<{
+        isOpen: boolean;
+        mode: 'create' | 'edit';
+        initialData?: Team | null; // For pre-filling edit form
+    }>({ isOpen: false, mode: 'create', initialData: null });
 
     // --- Debounce Search Term ---
     useEffect(() => {
@@ -124,6 +137,40 @@ const TeamsClientPage = () => {
     });
 
     // --- Mutations ---
+    const createTeamMutation = useMutation({
+        mutationFn: (data: { teamName: string; invitedUsernames: string[] }) =>
+            axios.post('/api/teams', { name: data.teamName, invitedUsernames: data.invitedUsernames }),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['userTeamStatus'] });
+            queryClient.invalidateQueries({ queryKey: ['teams'] });
+            setModalState({ isOpen: false, mode: 'create', initialData: null }); // Close modal on success
+            // Optionally: Show success message
+        },
+        onError: (error: AxiosError<{ message?: string }>) => { // Use AxiosError
+            console.error("Error creating team:", error);
+            // Optionally: Show error message to the user within the modal or via toast
+            alert(`Failed to create team: ${error.response?.data?.message || error.message}`);
+        },
+    });
+
+    const editTeamMutation = useMutation({
+         mutationFn: (data: { teamId: string; teamName: string; invitedUsernames: string[] }) =>
+            axios.put(`/api/teams/${data.teamId}`, { name: data.teamName, invitedUsernames: data.invitedUsernames }),
+        onSuccess: (_data, variables) => {
+            queryClient.invalidateQueries({ queryKey: ['userTeamStatus'] });
+            // Invalidate specific team data if cached individually, or just the list
+            queryClient.invalidateQueries({ queryKey: ['teams'] });
+            // Optionally update the specific team in the cache directly for faster UI update
+            // queryClient.setQueryData(['teams', variables.teamId], updatedTeamData);
+            setModalState({ isOpen: false, mode: 'create', initialData: null }); // Close modal
+        },
+        onError: (error: AxiosError<{ message?: string }>, variables) => { // Use AxiosError
+            console.error(`Error updating team ${variables.teamId}:`, error);
+            alert(`Failed to update team: ${error.response?.data?.message || error.message}`);
+        },
+    });
+
+
     const deleteMutation = useMutation({
         mutationFn: (teamId: string) => axios.delete(`/api/teams/${teamId}`),
         onSuccess: () => {
@@ -145,6 +192,30 @@ const TeamsClientPage = () => {
             deleteMutation.mutate(userTeamId);
         }
     };
+
+    // --- Modal Handlers ---
+    const handleOpenEditModal = (team: Team) => {
+        // Fetch current invitations for the team if needed, or just pass team data
+        // For simplicity, we'll just pass the team name for now.
+        // The modal itself handles fetching/displaying invite slots.
+        setModalState({ isOpen: true, mode: 'edit', initialData: team });
+    };
+
+    const handleSaveTeam = (data: { teamName: string; invitedUsernames: string[]; teamId?: string }) => {
+        if (modalState.mode === 'edit' && data.teamId) {
+            editTeamMutation.mutate({
+                teamId: data.teamId,
+                teamName: data.teamName,
+                invitedUsernames: data.invitedUsernames,
+            });
+        } else {
+            createTeamMutation.mutate({
+                teamName: data.teamName,
+                invitedUsernames: data.invitedUsernames,
+            });
+        }
+    };
+
 
     // --- Render Logic ---
     // const displayTeams = debouncedSearchTerm ? (searchResults ?? []) : allTeams; // Removed unused variable
@@ -176,7 +247,7 @@ const TeamsClientPage = () => {
                     ) : (
                          // Show Create button if user is NOT the leader (covers no team AND member cases)
                         <button
-                            onClick={() => setIsCreateModalOpen(true)}
+                            onClick={() => setModalState({ isOpen: true, mode: 'create', initialData: null })}
                             className="px-4 py-2 rounded font-semibold bg-blue-500 hover:bg-blue-600 text-white"
                         >
                             Create Team
@@ -212,14 +283,20 @@ const TeamsClientPage = () => {
                     <div className="space-y-4">
                         {isLoadingSearch && <p>Searching...</p>}
                         {!isLoadingSearch && searchResults && searchResults.length === 0 && <p>No teams found matching &quot;{debouncedSearchTerm}&quot;.</p>}
-                        {!isLoadingSearch && searchResults && searchResults.map(team => (
-                            <TeamWidget
-                                key={team.id}
-                                team={team}
-                                currentUserTeamStatus={userTeamStatus ?? null} // Handle undefined
-                                currentUsername={user?.username}
-                            />
-                        ))}
+                        {!isLoadingSearch && searchResults && searchResults.map(team => {
+                            // Determine if the current user has a pending invitation for this team
+                            const hasPendingInvitation = !!userTeamStatus?.pendingInvitations?.some(inv => inv.teamId === team.id);
+                            return (
+                                <TeamWidget
+                                    key={team.id}
+                                    team={team}
+                                    currentUserTeamStatus={userTeamStatus ?? null}
+                                    currentUsername={user?.username}
+                                    onEdit={handleOpenEditModal}
+                                    hasPendingInvitation={hasPendingInvitation} // Pass invitation status
+                                />
+                            );
+                        })}
                     </div>
                 ) : (
                     // Infinite Scroll List
@@ -231,23 +308,32 @@ const TeamsClientPage = () => {
                         endMessage={<p className="text-center py-4">No more teams to load.</p>}
                         className="space-y-4" // Add spacing between items
                     >
-                        {allTeams.map(team => (
-                            <TeamWidget
-                                key={team.id}
-                                team={team}
-                                currentUserTeamStatus={userTeamStatus ?? null} // Handle undefined
-                                currentUsername={user?.username}
-                            />
-                        ))}
+                        {allTeams.map(team => {
+                             // Determine if the current user has a pending invitation for this team
+                            const hasPendingInvitation = !!userTeamStatus?.pendingInvitations?.some(inv => inv.teamId === team.id);
+                            return (
+                                <TeamWidget
+                                    key={team.id}
+                                    team={team}
+                                    currentUserTeamStatus={userTeamStatus ?? null}
+                                    currentUsername={user?.username}
+                                    onEdit={handleOpenEditModal}
+                                    hasPendingInvitation={hasPendingInvitation} // Pass invitation status
+                                />
+                            );
+                        })}
                     </InfiniteScroll>
                 )
             )}
 
-            {/* Create Team Modal */}
-            {isCreateModalOpen && (
-                <CreateTeamModal
-                    isOpen={isCreateModalOpen}
-                    onClose={() => setIsCreateModalOpen(false)}
+            {/* Create/Edit Team Modal */}
+            {modalState.isOpen && (
+                <CreateEditTeamModal
+                    isOpen={modalState.isOpen}
+                    initialTeamData={modalState.initialData} // Pass initial data for editing
+                    onClose={() => setModalState({ isOpen: false, mode: 'create', initialData: null })}
+                    onSave={handleSaveTeam}
+                    isSaving={createTeamMutation.isPending || editTeamMutation.isPending} // Pass saving state
                 />
             )}
         </div>

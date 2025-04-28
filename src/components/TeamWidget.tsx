@@ -6,7 +6,7 @@ import React, { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import axios, { AxiosError } from 'axios';
 import CustomImage from './Image'; // Assuming this is the correct path for the Image component
-import EditTeamModal from '@/app/(board)/teams/EditTeamModal'; // Import the new modal
+// Removed EditTeamModal import
 
 // Re-using types defined in TeamsClientPage - consider moving to a shared types file later
 interface TeamMember {
@@ -31,8 +31,8 @@ interface Team {
     leaderId: string; // Need leaderId to identify leader in members array
     leader: TeamMember; // Assuming leader includes necessary fields like img
     members: TeamMember[]; // Assuming members array includes user details
-    isWhitelisted: boolean; // Added for whitelist status
-    whitelist: string[]; // Kept for potential future use, but isWhitelisted is primary now
+    // isWhitelisted: boolean; // Removed, logic now based on invitations
+    // whitelist: string[]; // Removed
     _count?: { members: number };
 }
 
@@ -45,17 +45,19 @@ interface TeamWidgetProps {
     team: Team;
     currentUserTeamStatus: UserTeamStatus | null; // Pass the fetched status from the parent
     currentUsername: string | undefined | null; // Pass the current user's username
+    onEdit: (team: Team) => void; // Callback to open the edit modal in parent
+    hasPendingInvitation: boolean; // Flag indicating if the current user is invited to THIS team
 }
 
 const MAX_DISPLAY_MEMBERS = 6;
 
-const TeamWidget: React.FC<TeamWidgetProps> = ({ team, currentUserTeamStatus, currentUsername }) => {
+const TeamWidget: React.FC<TeamWidgetProps> = ({ team, currentUserTeamStatus, currentUsername, onEdit, hasPendingInvitation }) => {
     const queryClient = useQueryClient();
-    const [isEditModalOpen, setIsEditModalOpen] = useState(false); // State for edit modal
+    // Removed local state for edit modal
 
     // --- Join Team Mutation ---
     const joinMutation = useMutation({
-        mutationFn: (teamId: string) => axios.put(`/api/teams/${teamId}/join`),
+        mutationFn: (teamId: string) => axios.post(`/api/teams/${teamId}/join`), // Use POST
         onSuccess: () => {
             // Invalidate queries to refetch data after joining
             queryClient.invalidateQueries({ queryKey: ['userTeamStatus'] });
@@ -77,10 +79,13 @@ const TeamWidget: React.FC<TeamWidgetProps> = ({ team, currentUserTeamStatus, cu
     };
 
     // --- Determine Join Button Visibility ---
-    const memberCount = team._count?.members ?? team.members?.length ?? 0; // Use count if available, else length
-    const userIsOnAnyTeam = !!currentUserTeamStatus?.team;
-    // const isOnWhitelist = currentUsername ? team.whitelist.includes(currentUsername) : false; // Old logic
-    const canJoin = !userIsOnAnyTeam && team.isWhitelisted && memberCount < MAX_DISPLAY_MEMBERS; // Use team.isWhitelisted
+    const memberCount = team._count?.members ?? team.members?.length ?? 0;
+    const userIsOnThisTeam = currentUserTeamStatus?.team?.id === team.id;
+    const userIsOnAnyTeam = !!currentUserTeamStatus?.team; // Keep this check
+
+    // User can join IF they have a pending invitation for THIS team AND they are not already on THIS team
+    // Note: The API already prevents joining if on *any* team, but this check prevents showing the button unnecessarily.
+    const canJoin = hasPendingInvitation && !userIsOnThisTeam;
 
     // --- Determine Edit Button Visibility ---
     const isCurrentUserLeaderOfThisTeam = currentUserTeamStatus?.isLeader === true && currentUserTeamStatus?.team?.id === team.id;
@@ -147,14 +152,14 @@ const TeamWidget: React.FC<TeamWidgetProps> = ({ team, currentUserTeamStatus, cu
                 {/* Edit Button for Leader */}
                 {isCurrentUserLeaderOfThisTeam && (
                      <button
-                        onClick={() => setIsEditModalOpen(true)} // Open edit modal
-                        className="px-4 py-2 rounded font-semibold bg-blue-500 hover:bg-blue-600 text-white"
-                    >
+                       onClick={() => onEdit(team)} // Call parent handler
+                       className="px-4 py-2 rounded font-semibold bg-blue-500 hover:bg-blue-600 text-white"
+                   >
                         Edit Team
                     </button>
                 )}
-                {/* Join Button for eligible users */}
-                {canJoin && !isCurrentUserLeaderOfThisTeam && ( // Ensure leader doesn't see Join
+                {/* Join Button for invited users not already on the team */}
+                {canJoin && ( // Simplified condition based on new `canJoin` logic
                     <button
                         onClick={handleJoinTeam}
                         disabled={joinMutation.isPending}
@@ -164,23 +169,15 @@ const TeamWidget: React.FC<TeamWidgetProps> = ({ team, currentUserTeamStatus, cu
                     </button>
                 )}
                 {/* Optionally show 'Full' or 'Not Whitelisted' status if needed */}
-                 {!canJoin && !isCurrentUserLeaderOfThisTeam && !userIsOnAnyTeam && memberCount >= MAX_DISPLAY_MEMBERS && (
+                 {/* Show "Team Full" only if user CANNOT join AND the reason is capacity */}
+                 {!canJoin && !userIsOnThisTeam && !hasPendingInvitation && memberCount >= MAX_DISPLAY_MEMBERS && (
                      <span className="text-sm text-gray-500 px-4 py-2">Team Full</span>
                  )}
-                 {!canJoin && !isCurrentUserLeaderOfThisTeam && !userIsOnAnyTeam && !team.isWhitelisted && memberCount < MAX_DISPLAY_MEMBERS && ( // Use team.isWhitelisted
-                     <span className="text-sm text-gray-500 px-4 py-2">Not Whitelisted</span>
-                 )}
-                 {/* If user is already on a team, no button/message needed here as Create is disabled */}
+                 {/* Removed "Not Whitelisted" span */}
+                 {/* If user is already on this team, no button/message needed */}
             </div>
 
-            {/* Edit Team Modal */}
-             {isEditModalOpen && (
-                <EditTeamModal
-                    isOpen={isEditModalOpen}
-                    onClose={() => setIsEditModalOpen(false)}
-                    team={team} // Pass current team data
-                />
-            )}
+            {/* Removed Edit Team Modal - handled by parent */}
         </div>
     );
 };

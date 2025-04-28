@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth, currentUser } from '@clerk/nextjs/server';
 import { prisma } from '@/prisma';
+import { Prisma } from '@prisma/client'; // Import Prisma for transaction type
 
 const MAX_TEAM_MEMBERS = 6;
 
-// PUT /api/teams/[teamId]/join - Join a team
+// POST /api/teams/[teamId]/join - Join a team via invitation
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function PUT(request: NextRequest, context: any) {
-    const { userId } = await auth(); // Await the auth() call
+export async function POST(request: NextRequest, context: any) { // Changed PUT to POST
+    const { userId } = await auth();
     const user = await currentUser();
 
     if (!userId || !user) {
@@ -21,7 +22,8 @@ export async function PUT(request: NextRequest, context: any) {
     }
 
     try {
-        // Check if team exists and get member count
+        // --- Pre-transaction checks ---
+        // 1. Check if team exists and get member count
         const team = await prisma.team.findUnique({
             where: { id: teamId },
             include: { _count: { select: { members: true } } },
@@ -31,13 +33,12 @@ export async function PUT(request: NextRequest, context: any) {
             return NextResponse.json({ error: 'Team not found' }, { status: 404 });
         }
 
-        // Check if user is already in a team by checking TeamMember
+        // 2. Check if user is already in any team
         const existingMembership = await prisma.teamMember.findUnique({
-            where: { userId: userId }, // Use the unique constraint name if needed, but userId should work
+            where: { userId: userId },
         });
 
         if (existingMembership) {
-            // User is already a member of a team (potentially this one or another)
             if (existingMembership.teamId === teamId) {
                  return NextResponse.json({ error: 'User already in this team' }, { status: 400 });
             } else {
@@ -45,24 +46,71 @@ export async function PUT(request: NextRequest, context: any) {
             }
         }
 
-        // Check if team is full
+        // 3. Check if team is full
         if (team._count.members >= MAX_TEAM_MEMBERS) {
             return NextResponse.json({ error: 'Team is full' }, { status: 400 });
         }
 
-        // Add user to the team by creating a TeamMember record
-        const newMembership = await prisma.teamMember.create({
-            data: {
-                userId: userId,
-                teamId: teamId,
-            },
+        // --- Transactional Logic ---
+        const result = await prisma.$transaction(async (tx) => {
+            // 4. Check for a PENDING invitation specifically for this user and team
+            // Use the compound unique key defined in the schema: @@unique([teamId, invitedUserId])
+            const invitation = await tx.teamInvitation.findUnique({
+                where: {
+                    teamId_invitedUserId: { // Corrected identifier
+                        teamId: teamId,
+                        invitedUserId: userId,
+                    }
+                },
+            });
+
+            // If no invitation or invitation is not PENDING, reject
+            if (!invitation || invitation.status !== 'PENDING') {
+                // Throw an error to abort the transaction
+                throw new Error('No pending invitation found or invitation already used.');
+            }
+
+            // 5. Add user to the team by creating a TeamMember record
+            const newMembership = await tx.teamMember.create({
+                data: {
+                    userId: userId,
+                    teamId: teamId,
+                },
+            });
+
+            // 6. Update the invitation status to ACCEPTED
+            await tx.teamInvitation.update({
+                where: {
+                    // Use the compound unique key defined in the schema
+                    teamId_invitedUserId: { // Corrected identifier
+                        teamId: teamId,
+                        invitedUserId: userId,
+                    }
+                    // Alternatively, could use the primary key: id: invitation.id
+                },
+                data: {
+                    status: 'ACCEPTED',
+                },
+            });
+
+            return newMembership; // Return the result from the transaction
         });
 
         // Return confirmation including the new membership details
-        return NextResponse.json({ message: 'Successfully joined team', membership: newMembership });
+        return NextResponse.json({ message: 'Successfully joined team via invitation', membership: result });
+
     } catch (error) {
         console.error('Error joining team:', error);
-        // Consider more specific error handling based on Prisma errors if needed
+        // Handle specific transaction error for missing/invalid invitation
+        if (error instanceof Error && error.message.includes('No pending invitation found')) {
+             return NextResponse.json({ error: 'No pending invitation found for this team.' }, { status: 403 }); // Forbidden
+        }
+        // Handle potential Prisma errors or other exceptions
+        if (error instanceof Prisma.PrismaClientKnownRequestError) {
+            // Log specific Prisma error code
+            console.error('Prisma Error Code:', error.code);
+        }
+        // General error
         return NextResponse.json({ error: 'Failed to join team due to server error' }, { status: 500 });
     }
 }
