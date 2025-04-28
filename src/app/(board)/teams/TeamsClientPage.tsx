@@ -27,7 +27,8 @@ interface Team {
     leaderId: string; // Add leaderId
     leader: TeamMember; // Assuming leader is included
     members: TeamMember[];
-    whitelist: string[]; // Assuming whitelist is string array
+    isWhitelisted: boolean; // Added for whitelist status
+    whitelist: string[]; // Assuming whitelist is string array (kept for now)
     _count?: { members: number }; // If count is included
     // Add other relevant fields
 }
@@ -155,17 +156,16 @@ const TeamsClientPage = () => {
             <div className="flex justify-between items-center mb-4">
                 <h1 className="text-2xl font-bold">Teams</h1>
                 <div className="flex gap-2">
-                    <button
-                        onClick={() => setIsCreateModalOpen(true)}
-                        disabled={userIsOnTeam || isLoadingUserStatus} // Disable if on team or loading status
-                        className={`px-4 py-2 rounded font-semibold ${userIsOnTeam || isLoadingUserStatus
-                                ? 'bg-gray-400 text-gray-700 cursor-not-allowed'
-                                : 'bg-blue-500 hover:bg-blue-600 text-white'
-                            }`}
-                    >
-                        Create Team
-                    </button>
-                    {userIsLeader && userTeamId && (
+                    {/* Conditional Button Rendering */}
+                    {isLoadingUserStatus ? (
+                        <button
+                            disabled
+                            className="px-4 py-2 rounded font-semibold bg-gray-400 text-gray-700 cursor-not-allowed"
+                        >
+                            Loading...
+                        </button>
+                    ) : userIsLeader && userTeamId ? (
+                        // Show Delete button if user is the leader
                         <button
                             onClick={handleDeleteTeam}
                             disabled={deleteMutation.isPending}
@@ -173,8 +173,20 @@ const TeamsClientPage = () => {
                         >
                             {deleteMutation.isPending ? 'Deleting...' : 'Delete My Team'}
                         </button>
+                    ) : !userIsOnTeam ? (
+                         // Show Create button if user is not on any team
+                        <button
+                            onClick={() => setIsCreateModalOpen(true)}
+                            className="px-4 py-2 rounded font-semibold bg-blue-500 hover:bg-blue-600 text-white"
+                        >
+                            Create Team
+                        </button>
+                    ) : (
+                        // Optional: Show something if user is on a team but not leader (e.g., disabled button or nothing)
+                        // Currently shows nothing in this case.
+                        null
                     )}
-                </div>
+                 </div>
             </div>
 
             {/* Search Bar */}

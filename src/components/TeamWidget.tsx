@@ -2,10 +2,11 @@
 
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import axios, { AxiosError } from 'axios';
 import CustomImage from './Image'; // Assuming this is the correct path for the Image component
+import EditTeamModal from '@/app/(board)/teams/EditTeamModal'; // Import the new modal
 
 // Re-using types defined in TeamsClientPage - consider moving to a shared types file later
 interface TeamMember {
@@ -30,7 +31,8 @@ interface Team {
     leaderId: string; // Need leaderId to identify leader in members array
     leader: TeamMember; // Assuming leader includes necessary fields like img
     members: TeamMember[]; // Assuming members array includes user details
-    whitelist: string[];
+    isWhitelisted: boolean; // Added for whitelist status
+    whitelist: string[]; // Kept for potential future use, but isWhitelisted is primary now
     _count?: { members: number };
 }
 
@@ -49,6 +51,7 @@ const MAX_DISPLAY_MEMBERS = 6;
 
 const TeamWidget: React.FC<TeamWidgetProps> = ({ team, currentUserTeamStatus, currentUsername }) => {
     const queryClient = useQueryClient();
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false); // State for edit modal
 
     // --- Join Team Mutation ---
     const joinMutation = useMutation({
@@ -76,8 +79,12 @@ const TeamWidget: React.FC<TeamWidgetProps> = ({ team, currentUserTeamStatus, cu
     // --- Determine Join Button Visibility ---
     const memberCount = team._count?.members ?? team.members?.length ?? 0; // Use count if available, else length
     const userIsOnAnyTeam = !!currentUserTeamStatus?.team;
-    const isOnWhitelist = currentUsername ? team.whitelist.includes(currentUsername) : false;
-    const canJoin = !userIsOnAnyTeam && isOnWhitelist && memberCount < MAX_DISPLAY_MEMBERS;
+    // const isOnWhitelist = currentUsername ? team.whitelist.includes(currentUsername) : false; // Old logic
+    const canJoin = !userIsOnAnyTeam && team.isWhitelisted && memberCount < MAX_DISPLAY_MEMBERS; // Use team.isWhitelisted
+
+    // --- Determine Edit Button Visibility ---
+    const isCurrentUserLeaderOfThisTeam = currentUserTeamStatus?.isLeader === true && currentUserTeamStatus?.team?.id === team.id;
+
 
     // --- Prepare Member List for Display ---
     // Ensure leader is first if possible, then fill remaining slots
@@ -137,7 +144,17 @@ const TeamWidget: React.FC<TeamWidgetProps> = ({ team, currentUserTeamStatus, cu
 
             {/* Action Button */}
             <div className="flex-shrink-0">
-                {canJoin && (
+                {/* Edit Button for Leader */}
+                {isCurrentUserLeaderOfThisTeam && (
+                     <button
+                        onClick={() => setIsEditModalOpen(true)} // Open edit modal
+                        className="px-4 py-2 rounded font-semibold bg-blue-500 hover:bg-blue-600 text-white"
+                    >
+                        Edit Team
+                    </button>
+                )}
+                {/* Join Button for eligible users */}
+                {canJoin && !isCurrentUserLeaderOfThisTeam && ( // Ensure leader doesn't see Join
                     <button
                         onClick={handleJoinTeam}
                         disabled={joinMutation.isPending}
@@ -147,14 +164,23 @@ const TeamWidget: React.FC<TeamWidgetProps> = ({ team, currentUserTeamStatus, cu
                     </button>
                 )}
                 {/* Optionally show 'Full' or 'Not Whitelisted' status if needed */}
-                 {!canJoin && !userIsOnAnyTeam && memberCount >= MAX_DISPLAY_MEMBERS && (
+                 {!canJoin && !isCurrentUserLeaderOfThisTeam && !userIsOnAnyTeam && memberCount >= MAX_DISPLAY_MEMBERS && (
                      <span className="text-sm text-gray-500 px-4 py-2">Team Full</span>
                  )}
-                 {!canJoin && !userIsOnAnyTeam && !isOnWhitelist && memberCount < MAX_DISPLAY_MEMBERS && (
+                 {!canJoin && !isCurrentUserLeaderOfThisTeam && !userIsOnAnyTeam && !team.isWhitelisted && memberCount < MAX_DISPLAY_MEMBERS && ( // Use team.isWhitelisted
                      <span className="text-sm text-gray-500 px-4 py-2">Not Whitelisted</span>
                  )}
                  {/* If user is already on a team, no button/message needed here as Create is disabled */}
             </div>
+
+            {/* Edit Team Modal */}
+             {isEditModalOpen && (
+                <EditTeamModal
+                    isOpen={isEditModalOpen}
+                    onClose={() => setIsEditModalOpen(false)}
+                    team={team} // Pass current team data
+                />
+            )}
         </div>
     );
 };

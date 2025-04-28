@@ -22,7 +22,7 @@ export async function GET(request: Request) {
             where: {
                 name: {
                     contains: query,
-                    // mode: 'insensitive', // Removed: Not standard for MySQL, rely on collation
+                    // mode: 'insensitive', // Rely on DB collation for case-insensitivity
                 },
             },
             // Include relations and count. Scalar fields are included by default.
@@ -50,7 +50,8 @@ export async function GET(request: Request) {
             take: 20, // Limit the number of search results
         });
 
-        return NextResponse.json(teams);
+        // Return response matching frontend expectation { teams: Team[] }
+        return NextResponse.json({ teams });
 
     } catch (error) {
         console.error("Error searching teams:", error);

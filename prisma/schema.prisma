@@ -121,7 +121,8 @@ model Team {
   leaderId  String   @unique // Requirement: User can create/lead only one team
   leader    User     @relation("TeamLeader", fields: [leaderId], references: [id], onDelete: Cascade) // Relation to the leader User
 
-  whitelist Json @default("[]") // Requirement: Whitelist of usernames allowed to join (stored as JSON)
+  whitelist Json @default("[]") // Requirement: Whitelist of usernames allowed to join (stored as JSON) - Kept for potential future use
+  isWhitelisted Boolean @default(false) // Requirement: Boolean flag for open joining
 
   members   TeamMember[] // Relation to team members (one team has many members)
 
