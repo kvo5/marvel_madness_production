@@ -51,19 +51,19 @@ const MissionsWidget = () => {
   };
 
   return (
-    <div className="bg-slate-100 rounded-lg p-4 flex flex-col gap-4">
-      <h2 className="font-medium text-lg">Missions</h2>
+    <div className="bg-neutral-800 rounded-lg p-4 flex flex-col gap-4 text-neutral-100">
+      <h2 className="text-xl font-semibold mb-4">Missions</h2>
 
       {/* Daily Check-in */}
       <div className="flex flex-col gap-2">
-        <h3 className="font-medium">Daily Check-in</h3>
-        <p className="text-xs text-gray-500">
+        <h3 className="font-medium text-neutral-200">Daily Check-in</h3>
+        <p className="text-xs text-neutral-400">
           Claim 10 reputation points every 24 hours.
         </p>
         <button
           onClick={handleClaimDaily}
           disabled={isPending || isDailyClaimed}
-          className="bg-blue-500 text-white text-sm rounded-md p-2 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-600 transition-colors"
+          className="bg-blue-600 text-white text-sm font-semibold rounded-full px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-700 transition-colors"
         >
           {isPending ? "Claiming..." : "Claim Daily Reward"}
         </button>
@@ -80,14 +80,14 @@ const MissionsWidget = () => {
 
       {/* Team Player */}
       <div className="flex flex-col gap-2">
-        <h3 className="font-medium">Team Player</h3>
-        <p className="text-xs text-gray-500">
+        <h3 className="font-medium text-neutral-200">Team Player</h3>
+        <p className="text-xs text-neutral-400">
           Claim 20 reputation points for being in a team.
         </p>
         <button
           onClick={handleClaimTeam}
           disabled={isPending} // Only disable during transition, server handles eligibility
-          className="bg-green-500 text-white text-sm rounded-md p-2 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-green-600 transition-colors"
+          className="bg-blue-600 text-white text-sm font-semibold rounded-full px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-700 transition-colors"
         >
           {isPending ? "Claiming..." : "Claim Team Reward"}
         </button>

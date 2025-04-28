@@ -21,6 +21,7 @@ generator client {
    cover       String?
    reputation  Int      @default(0) // Added reputation score
    lastDailyRewardClaimedAt DateTime? @updatedAt // Add this line
+   claimedTeamReward       Boolean   @default(false)
 
    // Team Relations
    // Relation indicating which team this user leads (if any)

@@ -68,7 +68,7 @@ export async function claimTeamReward(): Promise<{ success: boolean; newReputati
 
         const user = await prisma.user.findUnique({
             where: { id: userId },
-            select: { reputation: true, membership: true }, // Select the membership relation
+            select: { reputation: true, membership: true, claimedTeamReward: true }, // Select the membership relation and claim flag
         });
 
         if (!user) {
@@ -79,10 +79,12 @@ export async function claimTeamReward(): Promise<{ success: boolean; newReputati
             throw new Error("Must be in a team to claim this reward.");
         }
 
-        // Note: As per instructions, currently no check if this has been claimed before.
-        // This will grant the reward every time the action is called by a team member.
-        // A dedicated field (e.g., `hasClaimedTeamReward`) should be added to the User schema
-        // and checked here for a one-time claim implementation.
+        // The check for team membership ended on line 80
+
+        // Check if the team reward has already been claimed
+        if (user.claimedTeamReward) {
+            throw new Error("Team reward already claimed.");
+        }
 
         const updatedUser = await prisma.user.update({
             where: { id: userId },
@@ -90,8 +92,7 @@ export async function claimTeamReward(): Promise<{ success: boolean; newReputati
                 reputation: {
                     increment: TEAM_REWARD_AMOUNT,
                 },
-                // Add tracking field update here once schema is modified
-                // hasClaimedTeamReward: true,
+                claimedTeamReward: true, // Mark the reward as claimed
             },
             select: { reputation: true },
         });
