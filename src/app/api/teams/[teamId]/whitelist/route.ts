@@ -12,7 +12,8 @@ const updateWhitelistSchema = z.object({
 // PUT /api/teams/[teamId]/whitelist - Update a team's whitelist
 export async function PUT(
     request: Request,
-    { params }: { params: { teamId: string } }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    context: any
 ) {
     try {
         const authResult = await auth();
@@ -21,7 +22,7 @@ export async function PUT(
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const { teamId } = params;
+        const teamId = context.params.teamId;
         if (!teamId) {
             return NextResponse.json({ error: 'Team ID is required' }, { status: 400 });
         }
@@ -67,7 +68,7 @@ export async function PUT(
 
     } catch (error) {
         // Use params.teamId here as teamId from try block is not in scope
-        console.error(`Error updating whitelist for team ${params.teamId}:`, error);
+        console.error(`Error updating whitelist for team ${context.params.teamId}:`, error);
          if (error instanceof z.ZodError) {
             return NextResponse.json({ error: 'Invalid input', details: error.errors }, { status: 400 });
         }
