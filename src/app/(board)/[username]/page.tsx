@@ -98,13 +98,24 @@ const UserPage = async ({
 
           </div>
         </div>
-        <div className="flex w-full items-center justify-end gap-2 p-2">
+        <div className="flex w-full items-center justify-end gap-4 p-2"> {/* Increased gap */}
           {userId && (
-            <FollowButton
-            userId={user.id}
-            isFollowed={!!user.followings.length}
-            username={username}
-            />
+            <>
+              {/* Reputation Widget - Moved and scaled */}
+              <div className="scale-90">
+                <ReputationWidget
+                  targetUserId={user.id}
+                  initialReputation={user.reputation}
+                  initialVote={currentUserVote}
+                />
+              </div>
+              {/* Follow Button */}
+              <FollowButton
+                userId={user.id}
+                isFollowed={!!user.followings.length}
+                username={username}
+              />
+            </>
           )}
         </div>
         {/* USER DETAILS */}
@@ -121,11 +132,11 @@ const UserPage = async ({
               <div className="flex items-center gap-1">
                 {/* Use standard img tag for local public assets */}
                 <img
-                  src={`/icons/roles/${user.role.toLowerCase()}.svg`} // Use conventional path and svg
-                  alt={`${user.role} Role`}
+                  src={`/ranks/${user.role}.svg`} // Dynamic Path
+                  alt={user.role || 'Role'} // Dynamic Alt
                   width={16}
                   height={16}
-                  className="object-contain" // Added for better image scaling
+                  className="object-contain"
                 />
                 <span className="capitalize">{user.role.toLowerCase()}</span>
               </div>
@@ -135,11 +146,11 @@ const UserPage = async ({
                  {/* Use standard img tag for local public assets */}
                 <img
                   // Extract rank name, format to match filename case (e.g., "Grandmaster" from "GRANDMASTER III")
-                  src={`/icons/ranks/${user.rank.split(" ")[0].toLowerCase()}.svg`} // Use conventional path and svg
-                  alt={`${user.rank} Rank`}
+                  src={`/ranks/${user.rank}.svg`} // Dynamic Path
+                  alt={user.rank || 'Rank'} // Dynamic Alt
                   width={16}
                   height={16}
-                  className="object-contain" // Added for better image scaling
+                  className="object-contain"
                 />
                 <span>{user.rank}</span>
               </div>
@@ -177,14 +188,7 @@ const UserPage = async ({
               <span className="text-textGray text-[15px]">followers</span>
             </div>
           </div>
-          {/* REPUTATION WIDGET */}
-          <div className="p-4">
-            <ReputationWidget
-              targetUserId={user.id}
-              initialReputation={user.reputation}
-              initialVote={currentUserVote} // Pass the fetched vote object or null
-            />
-          </div>
+          {/* ReputationWidget moved near FollowButton */}
         </div>
       </div>
       {/* FEED */}

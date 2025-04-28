@@ -3,14 +3,27 @@ import CustomImage from "./Image"; // Alias the custom component for icons
 import NextImage from "next/image"; // Import standard next/image for avatar
 import Socket from "./Socket";
 import Notification from "./Notification";
-import { currentUser } from "@clerk/nextjs/server";
+import { auth } from "@clerk/nextjs/server"; // Changed from currentUser
+import { prisma } from "@/prisma"; // Corrected prisma import (named export)
+import ReputationWidget from "./ReputationWidget"; // Added ReputationWidget import
 import Logout from "@/components/Logout"; // Use path alias
 
 
 const LeftBar = async () => {
-  const user = await currentUser();
+  const { userId } = await auth(); // Await the auth() call
 
-  // Define menuList inside the component to access 'user'
+  let currentUserData = null;
+  if (userId) {
+    currentUserData = await prisma.user.findUnique({
+      where: { id: userId },
+      // Select necessary fields including reputation and the correct image field
+      select: { id: true, reputation: true, username: true, img: true } // Removed publicMetadata, imageUrl; Added img
+    });
+  }
+  const currentUserReputation = currentUserData?.reputation ?? 0;
+
+
+  // Define menuList inside the component to access 'currentUserData'
   const menuList = [
      {
       id: 3, // Original ID for Homepage
@@ -34,7 +47,7 @@ const LeftBar = async () => {
     {
       id: 9, // Original ID for Profile
       name: "Profile",
-      link: `/${user?.username || ''}`, // Dynamic link
+      link: `/${currentUserData?.username || ''}`, // Dynamic link using currentUserData
       icon: "profile.svg",
     },
     {
@@ -58,14 +71,14 @@ const LeftBar = async () => {
         <div className="flex flex-col gap-4">
           {menuList.map((item, i) => (
             <div key={item.id || i}>
-              {i === 1 && user && (
+              {i === 1 && userId && ( // Check userId instead of user
                 <div>
                   <Notification />
                 </div>
               )}
               <Link
-                // Use user?.username for the profile link specifically
-                href={item.name === "Profile" ? `/${user?.username || ''}` : item.link}
+                // Use currentUserData?.username for the profile link specifically
+                href={item.name === "Profile" ? `/${currentUserData?.username || ''}` : item.link}
                 className="p-2 rounded-full hover:bg-[#181818] flex items-center gap-4"
               >
                 <CustomImage
@@ -93,25 +106,35 @@ const LeftBar = async () => {
           Post
         </Link>
       </div>
-      {user && (
+      {userId && currentUserData && ( // Check userId and currentUserData
         <>
           <Socket />
-          {/* USER */}
-          <div className="flex items-center justify-between">
+
+          {/* REPUTATION WIDGET */}
+          <div className="mb-4 px-2"> {/* Add margin below widget and some padding */}
+            <ReputationWidget
+              targetUserId={userId}
+              initialReputation={currentUserReputation}
+              initialVote={null} // Corrected prop name to initialVote
+            />
+          </div>
+
+          {/* USER INFO */}
+          <div className="flex items-center justify-between px-2"> {/* Added padding */}
             <div className="flex items-center gap-2">
               <div className="w-10 h-10 relative rounded-full overflow-hidden">
                 {/* Use standard next/image for the avatar */}
                 <NextImage
-                  // Prioritize publicMetadata.imageUrl, fallback to imageUrl, then static image
-                  src={user?.publicMetadata?.imageUrl as string || user?.imageUrl || "/general/noAvatar.png"}
+                  // Use the 'img' field from the database, fallback to static image
+                  src={currentUserData?.img || "/general/avatar.png"} // Use currentUserData.img
                   alt="User Avatar"
                   fill // Use fill to cover the container
                   className="object-cover" // Ensure image covers the area
                 />
               </div>
               <div className="hidden xxl:flex flex-col">
-                <span className="font-bold">{user?.username}</span>
-                <span className="text-sm text-textGray">@{user?.username}</span>
+                <span className="font-bold">{currentUserData?.username}</span> {/* Use currentUserData */}
+                <span className="text-sm text-textGray">@{currentUserData?.username}</span> {/* Use currentUserData */}
               </div>
             </div>
             {/* <div className="hidden xxl:block cursor-pointer font-bold">...</div> */}
