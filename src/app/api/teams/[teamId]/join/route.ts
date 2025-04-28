@@ -33,9 +33,9 @@ export async function POST(request: NextRequest, context: any) { // Changed PUT 
             return NextResponse.json({ error: 'Team not found' }, { status: 404 });
         }
 
-        // 2. Check if user is already in any team (using findFirst for broader compatibility)
-        const existingMembership = await prisma.teamMember.findFirst({
-            where: { userId: userId }, // findFirst accepts userId directly
+        // 2. Check if user is already in any team
+        const existingMembership = await prisma.teamMember.findUnique({
+            where: { userId: userId },
         });
 
         if (existingMembership) {
