@@ -19,6 +19,7 @@ generator client {
    rank        String?  // Add Rank (String to accommodate tiers)
    img         String?
    cover       String?
+points      Int      @default(0) // Add points field
 
    // Team Relations
    // Relation indicating which team this user leads (if any)

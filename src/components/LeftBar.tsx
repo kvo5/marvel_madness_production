@@ -51,7 +51,7 @@ const LeftBar = async () => {
         <div className="flex flex-col gap-4">
           {menuList.map((item, i) => (
             <div key={item.id || i}>
-              {i === 2 && user && (
+              {i === 1 && user && (
                 <div>
                   <Notification />
                 </div>
