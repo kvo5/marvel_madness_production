@@ -46,7 +46,6 @@ const Share = () => {
       setMedia(null);
       setDesc(""); // Reset description
       setSettings({ type: "original", sensitive: false });
-      // Remove client-side invalidation; rely on revalidatePath in the server action
       // queryClient.invalidateQueries({ queryKey: ["posts"] });
     }
     // We can remove queryClient from dependency array if it's no longer used in the effect
