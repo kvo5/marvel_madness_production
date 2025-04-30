@@ -1,15 +1,29 @@
 "use client";
 
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 import * as Clerk from "@clerk/elements/common";
 import * as SignIn from "@clerk/elements/sign-in";
 import Link from "next/link";
 import Image from "@/components/Image";
 
+// Helper component to perform the redirect effect safely
+const RedirectOnError = ({ shouldRedirect }: { shouldRedirect: boolean }) => {
+  const router = useRouter();
+  useEffect(() => {
+    if (shouldRedirect) {
+      // Redirect to sign-up page if the specific error occurs
+      router.push('/sign-up');
+    }
+  }, [shouldRedirect, router]);
+  return null; // This component doesn't render anything visible
+};
+
 const SignInPage = () => {
   return (
     <div className="h-screen flex items-center justify-between p-8">
       <div className="hidden lg:flex w-1/2 items-center justify-center">
-        <Image 
+        <Image
           path="icons/logo.svg" 
           alt="Marvel Madness Logo" 
           w={520} 
@@ -22,6 +36,32 @@ const SignInPage = () => {
         </h1>
         <h1 className="text-2xl ">Compete with your friends.</h1>
         <SignIn.Root>
+          {/* Global Error Handler */}
+          <Clerk.GlobalError>
+            {(error) => {
+              // Log the error to help identify the correct code during testing/debugging
+              if (error) {
+                console.error("Clerk SignIn Error:", error);
+              }
+
+              // Check for the specific error code related to social sign-in user not found.
+              // 'external_account_not_found' is a common code for this, but verify if needed.
+              const isSocialUserNotFoundError = error?.code === 'external_account_not_found';
+
+              return (
+                <>
+                  {/* Component to handle the redirect side-effect */}
+                  <RedirectOnError shouldRedirect={isSocialUserNotFoundError} />
+                  {/* Render default error UI only if it's NOT the specific error */}
+                  {!isSocialUserNotFoundError && error ? (
+                    <p className="text-red-500 text-sm w-72">{error.message}</p>
+                  ) : null}
+                </>
+              );
+            }}
+          </Clerk.GlobalError>
+
+          {/* Google Connection */}
           <Clerk.Connection
             name="google"
             className="bg-white rounded-full p-2 text-black w-72 flex items-center justify-center gap-2 font-bold"
@@ -76,6 +116,7 @@ const SignInPage = () => {
               <Clerk.Field name="password" className="flex flex-col gap-2">
                 <Clerk.Input
                   placeholder="password"
+                  type="password"
                   className="py-2 px-6 rounded-full text-black w-72 placeholder:text-sm"
                 />
                 <Clerk.FieldError className="text-red-300 text-sm" />
@@ -133,13 +174,13 @@ const SignInPage = () => {
 
             <Clerk.Field name="password">
               <Clerk.Label>New password</Clerk.Label>
-              <Clerk.Input />
+              <Clerk.Input type="password" />
               <Clerk.FieldError />
             </Clerk.Field>
 
             <Clerk.Field name="confirmPassword">
               <Clerk.Label>Confirm password</Clerk.Label>
-              <Clerk.Input />
+              <Clerk.Input type="password" />
               <Clerk.FieldError />
             </Clerk.Field>
 

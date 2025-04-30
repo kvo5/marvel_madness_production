@@ -40,8 +40,26 @@ const CustomImage = ({ path, src, w, h, alt, className, tr }: ImageType) => {
 
   // Priority 2: Local path or external URL via path prop
   if (path) {
-    // Check if it's a local public path or a full URL
-    if (path.startsWith('/') || path.startsWith('http')) {
+    // Check for different path types
+    const isExternalUrl = path.startsWith('http');
+    const isImageKitPath = path.startsWith('/posts/'); // Assuming /posts/ indicates ImageKit
+    const isLocalPublicPath = path.startsWith('/') && !isImageKitPath;
+
+    // Priority 2a: External URL via path prop
+    if (isExternalUrl) {
+      return (
+        <Image
+          src={path}
+          alt={alt}
+          width={width}
+          height={height}
+          className={className}
+          unoptimized // Unoptimize external URLs if needed
+        />
+      );
+    }
+    // Priority 2b: Local public path via path prop
+    else if (isLocalPublicPath) {
        return (
          <Image
            src={path} // Use path directly as src for next/image
@@ -49,13 +67,13 @@ const CustomImage = ({ path, src, w, h, alt, className, tr }: ImageType) => {
            width={width}
            height={height}
            className={className}
-           unoptimized={path.startsWith('http')} // Unoptimize external URLs if needed
+           // No unoptimized needed for local paths
          />
        );
     }
     // Priority 3: ImageKit path via path prop
-    else if (urlEndpoint) {
-      // Only use IKImage if urlEndpoint is configured and path is not local/external
+    else if (isImageKitPath && urlEndpoint) {
+      // Use IKImage for paths starting with /posts/ if urlEndpoint is configured
       return (
         <IKImage
           urlEndpoint={urlEndpoint}
