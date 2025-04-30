@@ -68,7 +68,7 @@ const FollowingPage = async () => {
   return (
     <div className="">
       {/* Header Tabs - Copied from page.tsx for consistency, active tab updated */}
-      <div className='px-4 pt-4 flex justify-between text-textGray font-bold border-b-[1px] border-borderGray'>
+      <div className='px-4 pt-4 flex justify-between text-textGray font-bold border-b-[1px] border-borderYellow'>
         <Link className="pb-3 flex items-center" href="/">Feed</Link>
         <Link className="pb-3 flex items-center border-b-4 border-iconBlue" href="/following">Following</Link> {/* Updated href and active style */}
         <Link className="hidden pb-3 md:flex items-center" href="/">Assemble</Link> {/* Assuming these link elsewhere */}

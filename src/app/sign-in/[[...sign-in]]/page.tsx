@@ -147,9 +147,9 @@ const SignInPage = () => {
           </SignIn.Step>
           {/* OR SIGN UP */}
           <div className="w-72 flex items-center gap-4">
-            <div className="h-px bg-borderGray flex-grow"></div>
+            <div className="h-px bg-borderYellow flex-grow"></div>
             <span className="text-textGrayLight">or</span>
-            <div className="h-px bg-borderGray flex-grow"></div>
+            <div className="h-px bg-borderYellow flex-grow"></div>
           </div>
           <Link
             href="/sign-up"

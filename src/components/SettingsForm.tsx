@@ -35,8 +35,6 @@ const SettingsForm = ({ initialData }: { initialData: UserProfileData }) => {
     error: null,
   });
 
-  // Removed action state for delete action
-
   useEffect(() => {
     // Update local state if initialData changes (e.g., after successful update)
     setFormData(initialData);
@@ -91,11 +89,11 @@ const SettingsForm = ({ initialData }: { initialData: UserProfileData }) => {
 
       {/* Profile Picture */}
       <div>
-        <label className="block text-sm font-medium text-textGrayLight mb-1">
+        <label className="block text-sm font-medium text-inputBlack mb-1">
           Profile Picture
         </label>
         <div className="flex items-center gap-4">
-          <div className="w-20 h-20 rounded-full overflow-hidden relative bg-inputGray">
+          <div className="w-20 h-20 rounded-full overflow-hidden relative bg-inputBlack">
             {profilePicPreview ? (
               <NextImage src={profilePicPreview} alt="Preview" layout="fill" objectFit="cover" />
             ) : formData.img ? (
@@ -116,7 +114,7 @@ const SettingsForm = ({ initialData }: { initialData: UserProfileData }) => {
           <button
             type="button"
             onClick={() => profilePicRef.current?.click()}
-            className="py-1 px-3 border border-borderGray rounded-md text-sm hover:bg-inputGray"
+            className="py-1 px-3 border border-borderYellow rounded-md text-sm hover:bg-inputBlack"
           >
             Change
           </button>
@@ -125,11 +123,11 @@ const SettingsForm = ({ initialData }: { initialData: UserProfileData }) => {
 
       {/* Cover Picture */}
       <div>
-        <label className="block text-sm font-medium text-textGrayLight mb-1">
+        <label className="block text-sm font-medium text-inputBlack mb-1">
           Cover Picture
         </label>
         <div className="flex items-center gap-4">
-          <div className="w-full h-32 rounded-md overflow-hidden relative bg-inputGray">
+          <div className="w-full h-32 rounded-md overflow-hidden relative bg-inputBlack">
              {coverPicPreview ? (
               <NextImage src={coverPicPreview} alt="Preview" layout="fill" objectFit="cover" />
             ) : formData.cover ? (
@@ -150,7 +148,7 @@ const SettingsForm = ({ initialData }: { initialData: UserProfileData }) => {
            <button
             type="button"
             onClick={() => coverPicRef.current?.click()}
-            className="py-1 px-3 border border-borderGray rounded-md text-sm hover:bg-inputGray"
+            className="py-1 px-3 border border-borderYellow rounded-md text-sm hover:bg-inputBlack"
           >
             Change
           </button>
@@ -160,7 +158,7 @@ const SettingsForm = ({ initialData }: { initialData: UserProfileData }) => {
 
       {/* Display Name */}
       <div>
-        <label htmlFor="displayName" className="block text-sm font-medium text-textGrayLight mb-1">
+        <label htmlFor="displayName" className="block text-sm font-medium text-inputBlack mb-1">
           Display Name
         </label>
         <input
@@ -169,13 +167,13 @@ const SettingsForm = ({ initialData }: { initialData: UserProfileData }) => {
           name="displayName"
           value={formData.displayName || ""}
           onChange={handleInputChange}
-          className="w-full bg-inputGray p-2 rounded-md border border-borderGray outline-none focus:border-iconBlue"
+          className="w-full bg-inputBlack p-2 rounded-md border border-borderYellow outline-none focus:border-iconBlue"
         />
       </div>
 
       {/* Bio */}
       <div>
-        <label htmlFor="bio" className="block text-sm font-medium text-textGrayLight mb-1">
+        <label htmlFor="bio" className="block text-sm font-medium text-inputBlack mb-1">
           Bio
         </label>
         <textarea
@@ -184,13 +182,13 @@ const SettingsForm = ({ initialData }: { initialData: UserProfileData }) => {
           rows={3}
           value={formData.bio || ""}
           onChange={handleInputChange}
-          className="w-full bg-inputGray p-2 rounded-md border border-borderGray outline-none focus:border-iconBlue"
+          className="w-full bg-inputBlack p-2 rounded-md border border-borderYellow outline-none focus:border-iconBlue"
         />
       </div>
 
       {/* Location */}
       <div>
-        <label htmlFor="location" className="block text-sm font-medium text-textGrayLight mb-1">
+        <label htmlFor="location" className="block text-sm font-medium text-inputBlack mb-1">
           Location
         </label>
         <input
@@ -199,13 +197,13 @@ const SettingsForm = ({ initialData }: { initialData: UserProfileData }) => {
           name="location"
           value={formData.location || ""}
           onChange={handleInputChange}
-          className="w-full bg-inputGray p-2 rounded-md border border-borderGray outline-none focus:border-iconBlue"
+          className="w-full bg-inputBlack p-2 rounded-md border border-borderYellow outline-none focus:border-iconBlue"
          />
        </div>
 
        {/* Role */}
        <div>
-         <label htmlFor="role" className="block text-sm font-medium text-textGrayLight mb-1">
+         <label htmlFor="role" className="block text-sm font-medium text-inputBlack mb-1">
            Main Role
          </label>
          <select
@@ -213,7 +211,7 @@ const SettingsForm = ({ initialData }: { initialData: UserProfileData }) => {
            name="role"
            value={formData.role || ""}
            onChange={handleInputChange}
-           className="w-full bg-inputGray p-2 rounded-md border border-borderGray outline-none focus:border-iconBlue appearance-none" // appearance-none to style dropdown arrow if needed
+           className="w-full bg-inputBlack p-2 rounded-md border border-borderYellow outline-none focus:border-iconBlue appearance-none" // appearance-none to style dropdown arrow if needed
          >
            <option value="">Select Role...</option>
            {/* Use direct import */}
@@ -225,7 +223,7 @@ const SettingsForm = ({ initialData }: { initialData: UserProfileData }) => {
 
        {/* Rank */}
        <div>
-         <label htmlFor="rank" className="block text-sm font-medium text-textGrayLight mb-1">
+         <label htmlFor="rank" className="block text-sm font-medium text-inputBlack mb-1">
            Rank
          </label>
          <select
@@ -233,7 +231,7 @@ const SettingsForm = ({ initialData }: { initialData: UserProfileData }) => {
            name="rank"
            value={formData.rank || ""}
            onChange={handleInputChange}
-           className="w-full bg-inputGray p-2 rounded-md border border-borderGray outline-none focus:border-iconBlue appearance-none"
+           className="w-full bg-inputBlack p-2 rounded-md border border-borderYellow outline-none focus:border-iconBlue appearance-none"
          >
            <option value="">Select Rank...</option>
            {/* Generate Rank Options */}
@@ -248,7 +246,7 @@ const SettingsForm = ({ initialData }: { initialData: UserProfileData }) => {
 
        {/* Submit Button & Status */}
        {/* Added pt-4 and border-t for separation */}
-       <div className="flex items-center gap-4 pt-4 border-t border-borderGray">
+       <div className="flex items-center gap-4 pt-4 border-t border-borderYellow">
         <button
           type="submit"
           disabled={isPending}

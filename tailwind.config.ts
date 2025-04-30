@@ -19,8 +19,8 @@ export default {
       colors: {
         textGray: "#71767b",
         textGrayLight: "#e7e9ea", 
-        borderGray: "#ffe046", // acutally yellow
-        inputGray: "#00000", // actually black
+        borderYellow: "#ffe046",
+        inputBlack: "#00000",
         iconBlue: "#ffe046",
         iconGreen: "#00ba7c",
         iconPink: "#f91880",

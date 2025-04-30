@@ -1,6 +1,6 @@
 "use client";
 
-import { likePost } from "@/action"; // Remove rePost, savePost
+import { likePost } from "@/action";
 import { socket } from "@/socket";
 import { useUser } from "@clerk/nextjs";
 import Link from "next/link";
@@ -61,7 +61,6 @@ const PostInteractions = ({
           isLiked: !prev.isLiked,
         };
       }
-      // Remove rePost and save logic
       return prev;
     }
   );

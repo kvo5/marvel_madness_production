@@ -36,7 +36,7 @@ const FollowingClientPage: React.FC<FollowingClientPageProps> = ({ initialFollow
   return (
     <div className="p-4 flex flex-col gap-4">
       {/* Search Bar */}
-      <div className='bg-inputGray py-2 px-4 flex items-center gap-4 rounded-full sticky top-0 z-10'> {/* Added sticky top-0 z-10 */}
+      <div className='bg-inputBlack py-2 px-4 flex items-center gap-4 rounded-full sticky top-0 z-10'> {/* Added sticky top-0 z-10 */}
         <Image path="/icons/explore.svg" alt="search" w={16} h={16}/> {/* Ensure correct path */}
         <input
           type="text"

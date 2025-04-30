@@ -41,7 +41,7 @@ const PostInfo = ({ postId, postUserId }: { postId: number; postUserId: string }
         <Image path="icons/infoMore.svg" alt="More options" w={16} h={16} />
       </div>
       {open && (
-        <div className="absolute top-5 right-0 bg-black border border-borderGray rounded-md shadow-lg z-10 p-2 w-max">
+        <div className="absolute top-5 right-0 bg-black border border-borderYellow rounded-md shadow-lg z-10 p-2 w-max">
           {user?.id === postUserId && ( // Only show delete if the user owns the post
             <button
               onClick={handleDelete}

@@ -49,7 +49,6 @@ export async function POST(request: Request) {
     }
 
     // Create team, initial member (leader), and invitations in a transaction
-    // Remove explicit type for tx, let TypeScript infer it again
     const result = await prisma.$transaction(async (tx) => {
       // 1. Create the Team
       const team = await tx.team.create({
@@ -184,7 +183,7 @@ export async function GET(request: Request) {
 
         let nextCursor: string | null = null;
         if (teams.length > limit) {
-            const nextItem = teams.pop(); // Remove the extra item
+            const nextItem = teams.pop();
             nextCursor = nextItem!.id; // Use its ID as the next cursor
         }
 

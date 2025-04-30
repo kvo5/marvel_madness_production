@@ -108,7 +108,6 @@ export async function PUT(
         if (validUsernames.some(u => typeof u !== 'string' || u.length === 0)) {
              return NextResponse.json({ error: 'All invited usernames must be non-empty strings' }, { status: 400 });
         }
-        // Remove duplicates
         const uniqueInvitedUsernames = [...new Set(validUsernames)];
 
 

@@ -38,7 +38,7 @@ const Post = ({
   const originalPost = post.rePost || post;
 
   return (
-    <div className="p-4 border-y-[1px] border-borderGray">
+    <div className="p-4 border-y-[1px] border-borderYellow">
       {/* POST TYPE */}
       {post.rePostId && (
         <div className="flex items-center gap-2 text-sm text-textGray mb-2 from-bold">
@@ -126,7 +126,6 @@ const Post = ({
             </p>
           </Link>
           {originalPost.img && (
-            // Remove overflow-hidden for natural height; add rounded corners if desired
             <div className="rounded-lg">
               <Image
                 path={originalPost.img}
@@ -140,7 +139,6 @@ const Post = ({
             </div>
           )}
           {originalPost.video && (
-            // Remove overflow-hidden for natural height
             <div className="rounded-lg">
               <Video
                 path={originalPost.video}

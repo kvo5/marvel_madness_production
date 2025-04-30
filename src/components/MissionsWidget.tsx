@@ -4,7 +4,6 @@ import React, { useState, useEffect } from "react";
 import Countdown, { CountdownRenderProps } from "react-countdown";
 import { useUser } from "@clerk/nextjs";
 
-// Removed unused renderer function
 const MissionsWidget = () => {
   const { user, isLoaded } = useUser();
   const [points, setPoints] = useState<number>(0);
@@ -110,7 +109,7 @@ const MissionsWidget = () => {
 
 
   return (
-    <div className="p-4 rounded-2xl border-[1px] border-borderGray flex flex-col gap-4">
+    <div className="p-4 rounded-2xl border-[1px] border-borderYellow flex flex-col gap-4">
       <h1 className="text-xl font-bold text-textGrayLight text-center mb-2">
         Missions
       </h1>

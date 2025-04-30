@@ -101,7 +101,7 @@ const Search = () => {
 
   return (
     <div className="relative" ref={searchContainerRef}>
-      <div className="bg-inputGray py-2 px-4 flex items-center gap-4 rounded-full">
+      <div className="bg-inputBlack py-2 px-4 flex items-center gap-4 rounded-full">
         <Image path="icons/explore.svg" alt="search" w={16} h={16} />
         <input
           type="text"
@@ -121,7 +121,7 @@ const Search = () => {
               <Link
                 href={`/${user.username}`}
                 key={user.id}
-                className="flex items-center gap-3 p-3 hover:bg-inputGray cursor-pointer"
+                className="flex items-center gap-3 p-3 hover:bg-inputBlack cursor-pointer"
                 onClick={handleResultClick}
               >
                 <Image

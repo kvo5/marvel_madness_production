@@ -6,7 +6,6 @@ import React, { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import axios, { AxiosError } from 'axios';
 import CustomImage from './Image'; // Assuming this is the correct path for the Image component
-// Removed EditTeamModal import
 
 // Re-using types defined in TeamsClientPage - consider moving to a shared types file later
 interface TeamMember {
@@ -51,7 +50,6 @@ const MAX_DISPLAY_MEMBERS = 6;
 
 const TeamWidget: React.FC<TeamWidgetProps> = ({ team, currentUserTeamStatus, currentUsername, onEdit, hasPendingInvitation }) => {
     const queryClient = useQueryClient();
-    // Removed local state for edit modal
 
     // --- Join Team Mutation ---
     const joinMutation = useMutation({

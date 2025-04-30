@@ -167,7 +167,7 @@ const PostModal = () => {
           </div>
         </div>
         {/* BOTTOM */}
-        <div className=" flex items-center justify-between gap-4 flex-wrap border-t border-borderGray pt-4">
+        <div className=" flex items-center justify-between gap-4 flex-wrap border-t border-borderYellow pt-4">
           <div className="flex gap-4 flex-wrap relative">
             <input
               type="file"

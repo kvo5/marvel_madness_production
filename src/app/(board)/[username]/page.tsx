@@ -1,7 +1,6 @@
 import Feed from "@/components/Feed";
 import FollowButton from "@/components/FollowButton";
 // Keep custom Image component for cover for now
-// Remove custom Image import if no longer needed
 // import Image from "@/components/Image";
 // Import standard next/image for avatar and cover
 import NextImage from "next/image";

@@ -51,7 +51,7 @@ const SettingsPage = async () => {
 
 
   return (
-    <div className="p-4 border-l border-r border-borderGray min-h-screen">
+    <div className="p-4 border-l border-r border-borderYellow min-h-screen">
       <h1 className="text-xl font-bold mb-6">Edit Profile</h1>
       {/* Render the client component with initial data */}
       <SettingsForm initialData={initialData} />

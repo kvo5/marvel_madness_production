@@ -1,9 +1,7 @@
 import Link from "next/link";
-// import Image from "./Image"; // Remove unused custom Image import
 import NextImage from "next/image"; // Import standard next/image
 import { prisma } from "@/prisma";
 import { auth } from "@clerk/nextjs/server";
-// import FollowButton from "./FollowButton"; // Removed unused import
 
 // Define type for the result of the followingIds query
 type FollowId = {
@@ -44,7 +42,7 @@ const Recommendations = async () => {
   });
 
   return (
-    <div className="p-4 rounded-2xl border-[1px] border-borderGray flex flex-col gap-4">
+    <div className="p-4 rounded-2xl border-[1px] border-borderYellow flex flex-col gap-4">
       {/* Add explicit type for 'person' */}
       {recommendations.map((person: RecommendedUser) => (
         <div className="flex items-center justify-between" key={person.id}>
