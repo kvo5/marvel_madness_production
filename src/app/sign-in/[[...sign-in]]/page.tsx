@@ -1,23 +1,10 @@
 "use client";
 
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
 import * as Clerk from "@clerk/elements/common";
 import * as SignIn from "@clerk/elements/sign-in";
 import Link from "next/link";
 import Image from "@/components/Image";
 
-// Helper component to perform the redirect effect safely
-const RedirectOnError = ({ shouldRedirect }: { shouldRedirect: boolean }) => {
-  const router = useRouter();
-  useEffect(() => {
-    if (shouldRedirect) {
-      // Redirect to sign-up page if the specific error occurs
-      router.push('/sign-up');
-    }
-  }, [shouldRedirect, router]);
-  return null; // This component doesn't render anything visible
-};
 
 const SignInPage = () => {
   return (
@@ -36,29 +23,11 @@ const SignInPage = () => {
         </h1>
         <h1 className="text-2xl ">Compete with your friends.</h1>
         <SignIn.Root>
-          {/* Global Error Handler */}
+          {/* Global Error Handler for initial sign-in steps */}
           <Clerk.GlobalError>
-            {(error) => {
-              // Log the error to help identify the correct code during testing/debugging
-              if (error) {
-                console.error("Clerk SignIn Error:", error);
-              }
-
-              // Check for the specific error code related to social sign-in user not found.
-              // 'external_account_not_found' is a common code for this, but verify if needed.
-              const isSocialUserNotFoundError = error?.code === 'external_account_not_found';
-
-              return (
-                <>
-                  {/* Component to handle the redirect side-effect */}
-                  <RedirectOnError shouldRedirect={isSocialUserNotFoundError} />
-                  {/* Render default error UI only if it's NOT the specific error */}
-                  {!isSocialUserNotFoundError && error ? (
-                    <p className="text-red-500 text-sm w-72">{error.message}</p>
-                  ) : null}
-                </>
-              );
-            }}
+            {(error) => (
+              error ? <p className="text-red-500 text-sm w-72">{error.message}</p> : null
+            )}
           </Clerk.GlobalError>
 
           {/* Google Connection */}
